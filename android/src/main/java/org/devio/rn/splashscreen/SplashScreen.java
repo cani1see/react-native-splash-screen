@@ -3,6 +3,11 @@ package org.devio.rn.splashscreen;
 import android.app.Activity;
 import android.app.Dialog;
 import android.os.Build;
+import android.view.Window;
+
+import com.awesomelark.notchUtils.HwNotchUtils;
+import com.awesomelark.notchUtils.RomUtils;
+import com.awesomelark.notchUtils.XiaomiNotchUtils;
 
 import java.lang.ref.WeakReference;
 
@@ -21,7 +26,7 @@ public class SplashScreen {
     /**
      * 打开启动屏
      */
-    public static void show(final Activity activity, final int themeResId) {
+    public static void show(final Activity activity, final int themeResId, final boolean fullScreen) {
         if (activity == null) return;
         mActivity = new WeakReference<Activity>(activity);
         activity.runOnUiThread(new Runnable() {
@@ -30,6 +35,14 @@ public class SplashScreen {
                 if (!activity.isFinishing()) {
                     mSplashDialog = new Dialog(activity, themeResId);
                     mSplashDialog.setContentView(R.layout.launch_screen);
+                    Window window = mSplashDialog.getWindow();
+                    if (window != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.P && fullScreen) {
+                        if (RomUtils.isHuawei() && HwNotchUtils.hasNotch(window.getContext())) {
+                            HwNotchUtils.setFullScreenWindowLayoutInDisplayCutout(window);
+                        } else if (RomUtils.isXiaomi() && XiaomiNotchUtils.hasNotch(window.getContext())) {
+                            XiaomiNotchUtils.setFullScreenWindowLayoutInDisplayCutout(window);
+                        }
+                    }
                     mSplashDialog.setCancelable(false);
 
                     if (!mSplashDialog.isShowing()) {
@@ -46,7 +59,7 @@ public class SplashScreen {
     public static void show(final Activity activity, final boolean fullScreen) {
         int resourceId = fullScreen ? R.style.SplashScreen_Fullscreen : R.style.SplashScreen_SplashTheme;
 
-        show(activity, resourceId);
+        show(activity, resourceId, fullScreen);
     }
 
     /**
